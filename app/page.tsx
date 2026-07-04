@@ -6,6 +6,7 @@ import { TopicCard } from "@/components/topic-card";
 import { TopicCardSkeleton } from "@/components/topic-card-skeleton";
 import { GeneratingCard } from "@/components/generating-card";
 import { PromptInput } from "@/components/prompt-input";
+import { PreferencesDialog } from "@/components/preferences-dialog";
 
 export default function DashboardPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -45,7 +46,8 @@ export default function DashboardPage() {
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-14">
-      <header className="mb-12">
+    <header className="mb-12 flex items-start justify-between gap-4">
+      <div>
         <p className="font-mono-num text-xs uppercase tracking-widest text-secondary mb-3">
           adaptive learning
         </p>
@@ -53,7 +55,9 @@ export default function DashboardPage() {
         <p className="text-muted-foreground max-w-md">
           Describe a topic or a goal — Koru figures out what to teach and grows a spiral for it.
         </p>
-      </header>
+      </div>
+      <PreferencesDialog />
+    </header>
 
       <div className="mb-10 max-w-xl">
         <PromptInput

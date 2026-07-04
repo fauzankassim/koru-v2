@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { topicStore } from "@/lib/storage";
+import { topicStore, preferenceStore } from "@/lib/storage";
 import { generateJSON } from "@/lib/agent";
 import { buildTopicSystemPrompt, buildTopicUserPrompt } from "@/prompts/system";
 import { Topic, GeneratedTopicPackage } from "@/lib/types";
@@ -18,8 +18,9 @@ export async function POST(req: NextRequest) {
     }
 
     const elo = 1000;
+    const preferences = await preferenceStore.get();
     const { title, ...materials } = await generateJSON<GeneratedTopicPackage>(
-      buildTopicSystemPrompt(),
+      buildTopicSystemPrompt(preferences),
       buildTopicUserPrompt(prompt.trim(), elo)
     );
 
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
       materials,
       history: [],
+      preferences,
     };
 
     const saved = await topicStore.create(topic);

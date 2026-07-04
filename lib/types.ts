@@ -34,8 +34,19 @@ export interface Topic {
   createdAt: string;
   materials: TopicMaterials;
   history: { date: string; correct: number; total: number; eloAfter: number }[];
+  preferences: LearningPreferences;
+}
+export interface LearningPreferences {
+  explanationStyle: "analogies" | "technical" | "practical";
+  tone: "casual" | "formal";
+  exampleStyle: "real_world" | "abstract";
 }
 
+export const DEFAULT_PREFERENCES: LearningPreferences = {
+  explanationStyle: "practical",
+  tone: "casual",
+  exampleStyle: "real_world",
+};
 export interface GeneratedTopicPackage extends TopicMaterials {
   title: string;
 }

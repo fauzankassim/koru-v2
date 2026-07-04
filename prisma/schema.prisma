@@ -14,4 +14,12 @@ model Topic {
   createdAt DateTime @default(now())
   materials String
   history   String   @default("[]")
+  preferences String   @default("{\"explanationStyle\":\"practical\",\"tone\":\"casual\",\"exampleStyle\":\"real_world\"}")
+}
+
+model Preference {
+  id               String @id @default("default")
+  explanationStyle String @default("practical")
+  tone             String @default("casual")
+  exampleStyle     String @default("real_world")
 }

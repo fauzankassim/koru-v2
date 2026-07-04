@@ -10,9 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ObjectivePath } from "@/components/objective-path";
 import { TopicNotes } from "@/components/topic-notes";
 import { FlashcardDeck } from "@/components/flashcard-deck";
-import { TopicTitle } from "@/components/topic-title";
 import { QuizSection, QuizResult } from "@/components/quiz-section";
 import { TopicPageSkeleton } from "@/components/topic-page-skeleton";
+import { TopicTitle } from "@/components/topic-title";
+import { RegeneratingOverlay } from "@/components/regenerating-overlay";
+import { PreferenceBadges } from "@/components/preference-badges";
+import { TopicRegenerateDialog } from "@/components/topic-regenerate-dialog";
+import { LearningPreferences } from "@/lib/types";
 import { Loader2, Trash2 } from "lucide-react";
 
 export default function TopicPage() {
@@ -23,6 +27,7 @@ export default function TopicPage() {
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [regenerating, setRegenerating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState("objectives");
 
   useEffect(() => {
     fetch(`/api/topics/${id}`)
@@ -51,13 +56,20 @@ export default function TopicPage() {
     setTopic((prev) => (prev ? { ...prev, elo: result.newElo } : prev));
   }
 
-  async function handleRegenerate() {
+  async function handleRegenerate(preferences: LearningPreferences) {
     setRegenerating(true);
-    setQuizResult(null);
     try {
-      const res = await fetch(`/api/topics/${id}/regenerate`, { method: "POST" });
+      const res = await fetch(`/api/topics/${id}/regenerate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferences }),
+      });
       const data = await res.json();
-      if (data.topic) setTopic(data.topic);
+      if (data.topic) {
+        setTopic(data.topic);
+        setQuizResult(null);
+        setActiveTab("objectives");
+      }
     } finally {
       setRegenerating(false);
     }
@@ -91,7 +103,7 @@ export default function TopicPage() {
         </Button>
       </div>
 
-      <div className="flex flex-col justify-between mb-6 gap-2">
+      <div className="flex items-center justify-between mb-6 gap-3">
         <TopicTitle
           name={topic.name}
           topicId={id}
@@ -102,29 +114,40 @@ export default function TopicPage() {
           {isMaxLevel ? " (Max)" : ""}
         </Badge>
       </div>
+      <div className="mb-6 -mt-2 flex items-center justify-between gap-3">
+        <PreferenceBadges preferences={topic.preferences} size="md" />
+        <TopicRegenerateDialog
+          currentPreferences={topic.preferences}
+          onRegenerate={handleRegenerate}
+          regenerating={regenerating}
+        />
+      </div>
+      <div className="relative">
+        {regenerating && <RegeneratingOverlay />}
 
-      <Tabs defaultValue="objectives">
-        <TabsList>
-          <TabsTrigger value="objectives">Objectives</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-          <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
-          <TabsTrigger value="quiz">Quiz</TabsTrigger>
-        </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className={regenerating ? "pointer-events-none opacity-50" : ""}>
+            <TabsTrigger value="objectives">Objectives</TabsTrigger>
+            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+            <TabsTrigger value="quiz">Quiz</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="objectives" className="mt-4">
-          <ObjectivePath objectives={topic.materials.objectives} />
-        </TabsContent>
+          <TabsContent value="objectives" className="mt-4">
+            <ObjectivePath key={topic.materials.notes} objectives={topic.materials.objectives} />
+          </TabsContent>
 
-        <TabsContent value="notes" className="mt-4">
-          <TopicNotes markdown={topic.materials.notes} />
-        </TabsContent>
+          <TabsContent value="notes" className="mt-4">
+            <TopicNotes key={topic.materials.notes} markdown={topic.materials.notes} />
+          </TabsContent>
 
-        <TabsContent value="flashcards" className="mt-4">
-          <FlashcardDeck cards={topic.materials.flashcards} />
-        </TabsContent>
+          <TabsContent value="flashcards" className="mt-4">
+            <FlashcardDeck key={topic.materials.notes} cards={topic.materials.flashcards} />
+          </TabsContent>
 
         <TabsContent value="quiz" className="mt-4">
           <QuizSection
+            key={topic.materials.notes}
             topicId={id}
             quiz={topic.materials.quiz}
             result={quizResult}
@@ -132,20 +155,25 @@ export default function TopicPage() {
           />
           {quizResult && (
             <div className="mt-4">
-              <Button variant="outline" onClick={handleRegenerate} disabled={regenerating}>
+              <Button
+                variant="outline"
+                onClick={() => handleRegenerate(topic.preferences)}
+                disabled={regenerating}
+              >
                 {regenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     Generating…
                   </>
                 ) : (
-                  "Generate new materials"
+                  "Generate new materials at this level"
                 )}
               </Button>
             </div>
           )}
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </main>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Topic } from "@/lib/types";
 import { KoruSpiral } from "@/components/koru-spiral";
 import { eloToLevel } from "@/lib/elo";
+import { PreferenceBadges } from "@/components/preference-badges";
 
 export function TopicCard({ topic }: { topic: Topic }) {
   const lastAttempt = topic.history[topic.history.length - 1];
@@ -33,6 +34,7 @@ export function TopicCard({ topic }: { topic: Topic }) {
           ) : (
             <p className="italic">not attempted yet</p>
           )}
+          <PreferenceBadges preferences={topic.preferences} size="sm" />
         </div>
       </div>
     </Link>

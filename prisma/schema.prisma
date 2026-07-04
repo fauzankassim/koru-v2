@@ -1,0 +1,17 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+model Topic {
+  id        String   @id @default(uuid())
+  name      String
+  elo       Int      @default(1000)
+  createdAt DateTime @default(now())
+  materials String
+  history   String   @default("[]")
+}

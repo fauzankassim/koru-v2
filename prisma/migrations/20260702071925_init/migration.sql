@@ -1,9 +1,0 @@
--- CreateTable
-CREATE TABLE "Topic" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "elo" INTEGER NOT NULL DEFAULT 1000,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "materials" TEXT NOT NULL,
-    "history" TEXT NOT NULL DEFAULT '[]'
-);
